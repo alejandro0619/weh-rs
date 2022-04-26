@@ -1,0 +1,16 @@
+[package]
+name = "weh"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "weh"
+path = "src/bin.rs"
+
+[lib]
+name = "weh_lib"
+path = "src/lib/lib.rs"
+
+[dependencies]
+anyhow = "1.0.57"
+
