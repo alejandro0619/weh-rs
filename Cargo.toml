@@ -13,4 +13,5 @@ path = "src/lib/lib.rs"
 
 [dependencies]
 anyhow = "1.0.57"
+sys-info = "0.9.1"
 
