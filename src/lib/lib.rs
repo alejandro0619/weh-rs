@@ -1,14 +1,14 @@
 /// This module contains a single function in charge to verify whether ``feh`` exists in the system or not.
 pub mod check_feh {
 
-    use crate::check_os;
+    use crate::{check_os::{self, check_os}, distro::DistrosAvailable};
     use anyhow::Result;
     use std::process::Command;
 
     /// It only works for arch based distros because we run pacman to check if the package is installed.
 
     pub fn check() -> Result<bool> {
-        if check_os::check_os().is_ok() {
+        /*if check_os::check_os().is_ok() {
             match check_os::check_distro() {
                 Ok(name) => {
                     if name == "debian" {
@@ -28,18 +28,55 @@ pub mod check_feh {
                     }
                 }
                 Err(e) => {
-                    Err(anyhow::anyhow!("Something went wrong! {}", e))
+                    eprintln!("{:?}", e);
+                    Err(anyhow::anyhow!("{}", e))
                 }
             }
         } else {
             std::process::exit(1)
+        }*/
+        match check_os::check_os() {
+            Ok(()) => match check_os::check_distro() {
+                Ok(distro_name) => {
+                    match distro_name {
+                        DistrosAvailable::Arch => {
+                            Ok(true)
+                        }, 
+                        DistrosAvailable::Debian => {
+                            Ok(true)
+                        },
+                        DistrosAvailable::Other(name) => {
+                            Err(anyhow::anyhow!(" The distro {} is not supported", name))
+                        }
+                    }
+                },
+                Err(e) => Err(e),
+            },
+            Err(error) => Err(anyhow::anyhow!("Description message: {:?}", error)),
+        }
+    }
+}
+mod distro {
+    #[derive(Debug)]
+    pub enum DistrosAvailable {
+        Arch,
+        Debian,
+        Other(String), // This will throw an error later: Distro is not supported
+    }
+    impl DistrosAvailable {
+        pub fn new(name: &str) -> Self {
+            match name {
+                "debian" => DistrosAvailable::Debian,
+                "arch" => DistrosAvailable::Arch,
+                _ => DistrosAvailable::Other(String::from(name)),
+            }
         }
     }
 }
 pub mod check_os {
+    use crate::distro::DistrosAvailable;
     use anyhow::Context;
     use sys_info;
-
     ///
     ///
     /// # Examples
@@ -55,25 +92,20 @@ pub mod check_os {
     /// Panics if you can't retrieve info from the os at etc/os-release.
     pub fn check_os() -> anyhow::Result<()> {
         let os = sys_info::os_type().context("Failed to get the system information")?;
-
         if &os == "Darwin" || &os == "Windows" {
-            let a = anyhow::anyhow!(
-                "The current system is not supported! {}",
-                os);
-                eprintln!("{:?}", a);
-            Err(anyhow::anyhow!(
-                "The current system is not supported! {}",
-                os
-            )) // Err! if its winbug or macos
+            Err(anyhow::anyhow!("{} is not currently supported!", os)) // Err! if its winbug or macos
         } else {
-            Ok(()) // cool
+            Ok(())
+            // cool
         }
     }
 
-    pub fn check_distro() -> anyhow::Result<String> {
+    pub fn check_distro() -> anyhow::Result<DistrosAvailable> {
         let id_like_distro = sys_info::linux_os_release()
-            .context("Failed to gather information")?
-            .id_like;
-        Ok(id_like_distro.expect("Can't found sys info"))
+            .with_context(|| "Failed to gather information")?
+            .id_like
+            .expect("Failed to read from /etc/os-release");
+
+        Ok(DistrosAvailable::new(&id_like_distro))
     }
 }
