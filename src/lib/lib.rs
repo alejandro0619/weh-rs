@@ -85,7 +85,7 @@ pub mod check_os {
         if &os == "Darwin" || &os == "Windows" {
             Err(anyhow::anyhow!("{} is not currently supported!", os)) // Err! if its winbug or macos
         } else {
-            Ok(())
+            Ok(()) // It's cool
         }
     }
     // Checks the current distro, it must be debian-based or arch-based systems
