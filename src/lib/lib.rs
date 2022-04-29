@@ -1,53 +1,53 @@
 /// This module contains a single function in charge to verify whether ``feh`` exists in the system or not.
 pub mod check_feh {
 
-    use crate::{check_os::{self, check_os}, distro::DistrosAvailable};
+    use crate::{
+        check_os::{check_distro, check_os},
+        distro::DistrosAvailable,
+    };
     use anyhow::Result;
-    use std::process::Command;
+    use std::process::{Command, Stdio};
 
-    /// It only works for arch based distros because we run pacman to check if the package is installed.
-
-    pub fn check() -> Result<bool> {
-        /*if check_os::check_os().is_ok() {
-            match check_os::check_distro() {
-                Ok(name) => {
-                    if name == "debian" {
-                        let success = Command::new("dpkg").args(["-s", "feh"]).status()?;
-                        if success.code() != Some(0) {
-                            Err(anyhow::anyhow!("Feh is not installed!")) // If the code is not equal to zero, return false
+    /// Runs ``both check_os`` and ``check_distro`` to verify the system info, and then checks if feh is installed: Only works in debian-based and arch-based distros
+    pub fn check() -> Result<()> {
+        match check_os() {
+            Ok(()) => match check_distro() {
+                Ok(distro_name) => match distro_name {
+                    DistrosAvailable::Arch => {
+                        let success = Command::new("pacman")
+                            .args(["-Q", "feh"])
+                            .stdout(Stdio::null()) //Will not generate any default input, but the one the program will throw
+                            .output()?
+                            .status
+                            .code();
+                        if success != Some(0) {
+                            Err(anyhow::anyhow!(
+                                "Feh is not installed, exit with code: {:?}",
+                                success.unwrap_or(1)
+                            ))
                         } else {
-                            Ok(true)
-                        }
-                    } else {
-                        let success = Command::new("pacman").args(["-Q", "feh"]).status()?;
-                        if success.code() != Some(0) {
-                            Err(anyhow::anyhow!("Feh is not installed!")) // If the code is not equal to zero, return false
-                        } else {
-                            Ok(true)
+                            Ok(())
                         }
                     }
-                }
-                Err(e) => {
-                    eprintln!("{:?}", e);
-                    Err(anyhow::anyhow!("{}", e))
-                }
-            }
-        } else {
-            std::process::exit(1)
-        }*/
-        match check_os::check_os() {
-            Ok(()) => match check_os::check_distro() {
-                Ok(distro_name) => {
-                    match distro_name {
-                        DistrosAvailable::Arch => {
-                            Ok(true)
-                        }, 
-                        DistrosAvailable::Debian => {
-                            Ok(true)
-                        },
-                        DistrosAvailable::Other(name) => {
-                            Err(anyhow::anyhow!(" The distro {} is not supported", name))
+                    DistrosAvailable::Debian => {
+                        let success = Command::new("dpkg")
+                            .args(["-s", "feh"])
+                            .stdout(Stdio::null()) //Will not generate any default input, but the one the program will throw
+                            .output()?
+                            .status
+                            .code();
+
+                        if success != Some(0) {
+                            Err(anyhow::anyhow!(
+                                "Feh is not installed, exit with code: {:?}",
+                                success.unwrap_or(1)
+                            ))
+                        } else {
+                            Ok(())
                         }
+                    }
+                    DistrosAvailable::Other(name) => {
+                        Err(anyhow::anyhow!("The distro {} is not supported", name))
                     }
                 },
                 Err(e) => Err(e),
@@ -56,8 +56,10 @@ pub mod check_feh {
         }
     }
 }
+/// Distros availables
 mod distro {
     #[derive(Debug)]
+    /// List of distros that are supported
     pub enum DistrosAvailable {
         Arch,
         Debian,
@@ -77,19 +79,7 @@ pub mod check_os {
     use crate::distro::DistrosAvailable;
     use anyhow::Context;
     use sys_info;
-    ///
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use weh_lib::check_os::check_os;
-    ///
-    /// assert_eq!(check_os(), true); // It is supported
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if you can't retrieve info from the os at etc/os-release.
+    ///  Checks that the current OS is linux, if not, sends an error
     pub fn check_os() -> anyhow::Result<()> {
         let os = sys_info::os_type().context("Failed to get the system information")?;
         if &os == "Darwin" || &os == "Windows" {
@@ -99,13 +89,16 @@ pub mod check_os {
             // cool
         }
     }
-
+    // Checks the current distro, it must be debian-based or arch-based systems
     pub fn check_distro() -> anyhow::Result<DistrosAvailable> {
         let id_like_distro = sys_info::linux_os_release()
             .with_context(|| "Failed to gather information")?
             .id_like
-            .expect("Failed to read from /etc/os-release");
+            .with_context(|| "Can't read ID_LIKE from the file : /etc/os-release");
 
-        Ok(DistrosAvailable::new(&id_like_distro))
+        match id_like_distro {
+            Ok(id_like) => Ok(DistrosAvailable::new(&id_like)),
+            Err(e) => Err(e),
+        }
     }
 }
