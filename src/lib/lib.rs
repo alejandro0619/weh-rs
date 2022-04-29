@@ -86,7 +86,6 @@ pub mod check_os {
             Err(anyhow::anyhow!("{} is not currently supported!", os)) // Err! if its winbug or macos
         } else {
             Ok(())
-            // cool
         }
     }
     // Checks the current distro, it must be debian-based or arch-based systems
