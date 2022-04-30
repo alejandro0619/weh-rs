@@ -4,7 +4,7 @@ pub mod download;
 pub mod check_feh {
 
     use crate::{
-        check_os::{check_distro, check_os},
+        check_info::{check_distro, check_os, check_wm},
         distro::DistrosAvailable,
     };
     use anyhow::Result;
@@ -13,7 +13,7 @@ pub mod check_feh {
     /// Runs ``both check_os`` and ``check_distro`` to verify the system info, and then checks if feh is installed: Only works in debian-based and arch-based distros
     pub fn check() -> Result<()> {
         match check_os() {
-            Ok(()) => match check_distro() {
+            Ok(_) => match check_distro() {
                 Ok(distro_name) => match distro_name {
                     DistrosAvailable::Arch => {
                         let success = Command::new("pacman")
@@ -28,7 +28,11 @@ pub mod check_feh {
                                 success.unwrap_or(1)
                             ))
                         } else {
-                            Ok(())
+                            // At this point checks if the wm is supported
+                            match check_wm() {
+                                Ok(_) => Ok(()),
+                                Err(e) => Err(e)
+                            }
                         }
                     }
                     DistrosAvailable::Debian => {
@@ -45,7 +49,10 @@ pub mod check_feh {
                                 success.unwrap_or(1)
                             ))
                         } else {
-                            Ok(())
+                            match check_wm() {
+                                Ok(_) => Ok(()),
+                                Err(e) => Err(e)
+                            }
                         }
                     }
                     DistrosAvailable::Other(name) => {
@@ -77,10 +84,12 @@ mod distro {
         }
     }
 }
-pub mod check_os {
+pub mod check_info {
     use crate::distro::DistrosAvailable;
     use anyhow::Context;
     use sys_info;
+    use std::process::Command;
+
     ///  Checks that the current OS is linux, if not, sends an error
     pub fn check_os() -> anyhow::Result<()> {
         let os = sys_info::os_type().context("Failed to get the system information")?;
@@ -102,4 +111,22 @@ pub mod check_os {
             Err(e) => Err(e),
         }
     }
+
+    pub fn check_wm() -> anyhow::Result<()>{
+        let wm_de: Vec<u8> = Command::new("bash")
+        .arg("check_wm.sh")
+        .output()
+        .with_context(||"Failed obtaining the WM/DE identify")?
+        .stdout;
+        
+
+        //Validate:
+         if  String::from_utf8_lossy(&wm_de).trim() != "bspwm" {
+             Err(anyhow::anyhow!("The current DE/WM is not supported"))
+         } else {
+             Ok(())
+         }
+    }
 }
+
+
