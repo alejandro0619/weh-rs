@@ -1,3 +1,5 @@
+pub mod download;
+
 /// This module contains a single function in charge to verify whether ``feh`` exists in the system or not.
 pub mod check_feh {
 

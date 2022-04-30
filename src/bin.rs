@@ -1,8 +1,13 @@
 use anyhow::{self, Result};
-use weh_lib::check_feh;
+use weh_lib::{check_feh, download};
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     check_feh::check()?;
-
+    download::download_img(
+        String::from("https://georgik.rocks/wp-content/uploads/sianim.gif"),
+        String::from("test.gif"),
+    )
+    .await?;
     Ok(())
 }
