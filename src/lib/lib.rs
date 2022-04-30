@@ -128,5 +128,3 @@ pub mod check_info {
          }
     }
 }
-
-
