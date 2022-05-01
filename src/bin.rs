@@ -1,5 +1,5 @@
 use anyhow::{self, Result};
-use weh_lib::{check_feh, download};
+use weh_lib::{background, check_feh, download};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -9,5 +9,6 @@ async fn main() -> Result<()> {
         String::from("test.gif"),
     )
     .await?;
+    background::set_background();
     Ok(())
 }

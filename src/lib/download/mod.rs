@@ -12,7 +12,7 @@ pub async fn download_img(url: String, file_name: String) -> Result<()> {
     let mut content = Cursor::new(response.bytes().await?);
 
     std::io::copy(&mut content, &mut file)
-    .with_context(|| "Failed to copy the file, try again.")?;
-    
+        .with_context(|| "Failed to copy the file, try again.")?;
+
     Ok(())
 }
