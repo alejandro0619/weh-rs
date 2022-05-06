@@ -1,6 +1,7 @@
 use anyhow::{self, Context, Result};
 use std::{fs::File, io::Cursor};
 
+
 pub async fn download_img(url: String, file_name: String) -> Result<()> {
     let response = reqwest::get(url)
         .await
