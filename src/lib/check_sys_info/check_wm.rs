@@ -7,7 +7,6 @@ pub fn check() -> Result<()> {
         .output()
         .with_context(|| "Failed obtaining the WM/DE identify")?
         .stdout;
-    println!("{:?}", String::from_utf8_lossy(&wm_de).trim());
     //Validate:
     if String::from_utf8_lossy(&wm_de).trim() != "bspwm" {
         Err(anyhow::anyhow!("The current DE/WM is not supported"))
