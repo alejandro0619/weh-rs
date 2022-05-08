@@ -1,6 +1,6 @@
+use super::helper::dirs;
 use anyhow::{self, Context, Result};
 use std::{fs::File, io::Cursor};
-use super::helper::dirs;
 
 pub async fn download_img(url: String, file_name: String) -> Result<()> {
     let path = dirs::create_custom_folder(dirs::picture_folder()?)?;

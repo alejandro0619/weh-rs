@@ -1,7 +1,5 @@
 use std::process::Command;
 
-/// .
-///
 /// # Examples
 ///
 /// ```
@@ -13,9 +11,13 @@ use std::process::Command;
 /// # Panics
 ///
 /// Panics if .
-pub fn set_background() {
+pub fn set_background(path: &str) {
+    
     Command::new("feh")
-        .args(["--bg-fill", "fewwis but nord.png"])
+        .args([
+            "--bg-fill",
+            path,
+        ])
         .status()
         .expect("err");
 }
