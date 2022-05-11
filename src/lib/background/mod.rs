@@ -12,12 +12,8 @@ use std::process::Command;
 ///
 /// Panics if .
 pub fn set_background(path: &str) {
-    
     Command::new("feh")
-        .args([
-            "--bg-fill",
-            path,
-        ])
+        .args(["--bg-fill", path])
         .status()
         .expect("err");
 }

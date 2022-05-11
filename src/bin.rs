@@ -3,14 +3,14 @@ use weh_lib::{background, check_feh, cli::interface, download};
 #[tokio::main]
 async fn main() -> Result<()> {
     check_feh::check()?;
-    let a = interface::input()?;
-    println!("{:?}", a);
-    download::download_img(
-        String::from("https://georgik.rocks/wp-content/uploads/sianim.gif"),
-        String::from("test.gif"),
-    )
-    .await?;
+    let path = interface::input();
+    println!("{}", &path.0);
 
-    background::set_background(&a);
+    if path.1 {
+        download::download_img(String::from(&path.0), String::from("test.png")).await?;
+    }
+    else {
+        background::set_background(&path.0);
+    }
     Ok(())
 }
