@@ -13,7 +13,8 @@ async fn main() -> Result<()> {
     println!("{:#?}", &path.2);
 
     if path.1 {
-        download::download_img(String::from(&path.0), String::from("test.png")).await?;
+        download::download_img(String::from(&path.0), String::from(&path.2.unwrap())).await?;
+        // ofc I will replace that unwrap()
     }
     else {
         background::set_background(&path.0);
