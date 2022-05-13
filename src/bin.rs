@@ -10,7 +10,6 @@ use weh_lib::{
 async fn main() -> Result<()> {
     check_feh::check()?;
     let path = interface::input();
-    println!("{:#?}", &path.2);
 
     if path.1 {
         download::download_img(String::from(&path.0), String::from(&path.2.unwrap())).await?;
