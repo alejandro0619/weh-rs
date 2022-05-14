@@ -2,7 +2,7 @@ use super::helper::dirs;
 use anyhow::{self, Context, Result};
 use std::{fs::File, io::Cursor};
 
-pub async fn download_img(url: String, file_name: String) -> Result<()> {
+pub async fn download_img(url: String, file_name: &str) -> Result<()> {
     let path = dirs::create_custom_folder(dirs::picture_folder()?)?;
     let response = reqwest::get(url)
         .await
