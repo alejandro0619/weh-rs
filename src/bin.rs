@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
             }
         }
     } else {
-        background::set_background(&path.0);
+        background::set_background(&path.0); // Sets the background given by the tuple at the 0 place.
     }
     Ok(())
 }
